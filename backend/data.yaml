@@ -1,0 +1,14 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 13
+names: ['busy', 'female', 'fine', 'hello', 'help', 'male_word', 'practice', 'rest', 'sorry', 'support', 'wait', 'wait-', 'work']
+
+roboflow:
+  workspace: hammads-flow
+  project: pakistan-sign-language-translator-2
+  version: 8
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/hammads-flow/pakistan-sign-language-translator-2/dataset/8
+  I am a busy male, asking for support from my female friends at work 

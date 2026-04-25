@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "267372672473",
+    "project_id": "khudsuno",
+    "storage_bucket": "khudsuno.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:267372672473:android:5311d0351ded1b26e295c8",
+        "android_client_info": {
+          "package_name": "com.khudsuno"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC74diH0OOqDyVm7ue0yiDMBbgkaoCmcAE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
