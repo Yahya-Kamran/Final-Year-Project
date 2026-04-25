@@ -48,8 +48,10 @@ graph TD
 ```text
 ├── mobile-app/         # React Native Frontend
 ├── backend/            # FastAPI Server logic
-│   ├── server.py       # Main entry point
-│   ├── data.yaml       # Dataset configuration
+│   ├── server.py               # FastAPI Server
+│   ├── psl_training.ipynb      # Main Pakistani Sign Language training logic (Extracted)
+│   ├── yolo_experiments.ipynb  # YOLOv11 testing and inference experiments
+│   ├── data.yaml               # Dataset configuration
 │   └── requirements.txt
 ├── models/             # Pre-trained ML weights
 │   └── yolo11n.pt      # Sign Language Detection model
