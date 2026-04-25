@@ -12,7 +12,6 @@
 ## 🌟 Key Features
 
 - **Real-time Gesture Detection**: Powered by **YOLOv11**, achieving high accuracy in recognizing diverse sign language alphabet and word gestures.
-- **Skeletal Rigging**: Uses **MediaPipe** for precise hand landmark tracking and bone rigging, ensuring robust detection even in varied lighting.
 - **Intelligent Sentence Synthesis**: Integrates **Meta LLaMA 2** to convert a stream of detected words into grammatically correct and contextually relevant sentences.
 - **Cross-Platform Mobile App**: A sleek **React Native** frontend providing an intuitive user experience for real-time translation and profile management.
 - **FastAPI Backend**: A high-performance asynchronous API handling the heavy lifting of ML inference.
@@ -24,25 +23,23 @@
 The development of Khudsuno followed a rigorous engineering path to solve the "Isolated Word Problem" in sign language translation.
 
 ### 1. Model Training & Dataset
-We utilized a custom-curated Pakistani Sign Language (PSL) dataset. The thought process was to use **YOLOv11n** (Nano) for its extreme efficiency on edge devices. By training on specific hand-gestures, we created a model that doesn't just detect objects, but interprets human intent through skeletal landmarks and rigging.
+We utilized a custom-curated Pakistani Sign Language (PSL) dataset. The thought process was to use **YOLOv11n** (Nano) for its extreme efficiency on edge devices. By training on specific hand-gestures, we created a model that captures human intent directly through computer vision.
 
 ### 2. Multi-Threaded Execution Flow
 To ensure a lag-free user experience, the backend operates on a sophisticated dual-thread architecture:
 
-- **🧵 Thread 1: Real-time Perception (The Eyes)**
+- **🧵 Thread 1: Perception & Word Collection**
   - Constantly monitors the camera feed using **OpenCV**.
-  - Processes each frame through the YOLOv11 model.
-  - Implements a **temporal buffer**: A gesture must be held for a specific duration to be registered, filtering out accidental movements.
-  - Detects "Sentence Breaks" based on a 5-second inactivity timer.
+  - Processes each frame through the YOLOv11 model to detect gestures.
+  - **Logic**: It detects gestures and identifies the corresponding words. These words are then collected into a "bag of words" (a query) representing a nascent sentence.
+  - Once a sentence break is detected (based on a 5-second inactivity timer), the entire collected query is sent to Thread 2.
+  - Thread 1 immediately resets to start capturing the next word/sentence.
 
-- **🧵 Thread 2: Natural Language Processing (The Brain)**
-  - Receives the raw "bag of words" from Thread 1 via a thread-safe Queue.
-  - Feeds these words into **Meta LLaMA 2**.
-  - **The Magic**: LLaMA takes raw detections like `[ "hello", "help", "work" ]` and synthesizes them into a natural sentence: *"Hello, I need help with work."*
-  - Sends the refined output back to the frontend via FastAPI.
-
-### 3. Frontend Integration
-The React Native app connects to the FastAPI backend via WebSockets/REST to display both the annotated video stream (showing the skeleton rigging) and the final translated sentences in real-time.
+- **🧵 Thread 2: Sentence Structuring (The Brain)**
+  - Receives the raw query (the sequence of detected words) from Thread 1.
+  - Feeds this query into **Meta LLaMA 2**.
+  - **The Magic**: LLaMA gives the sentence proper structure, grammar, and context. For example, it takes raw detections like `[ "hello", "help", "work" ]` and converts them into a meaningful sentence: *"Hello, I need help with work."*
+  - The structured sentence is then displayed on the frontend in real-time.
 
 ---
 
@@ -52,11 +49,11 @@ The React Native app connects to the FastAPI backend via WebSockets/REST to disp
 graph TD
     A[Mobile App - React Native] -->|Video Stream| B[FastAPI Backend]
     B --> C{Multi-Threaded Engine}
-    C -->|Thread 1: CV| D[YOLOv11 + MediaPipe]
-    D -->|Detected Words Queue| E[Thread 2: NLP]
-    E -->|LLaMA 2 Inference| F[Coherent Sentences]
+    C -->|Thread 1: Word Detection| D[YOLOv11 Inference]
+    D -->|Query/Word Sequence| E[Thread 2: NLP]
+    E -->|LLaMA 2 Structuring| F[Structured Sentences]
     F -->|JSON Response| B
-    B -->|Live Feed + Text| A
+    B -->|Live Feed + Refined Text| A
 ```
 
 ---
@@ -65,7 +62,7 @@ graph TD
 
 - **Frontend**: React Native, React Navigation, Firebase
 - **Backend**: FastAPI, Uvicorn, OpenCV
-- **AI/ML**: Ultralytics YOLOv11, MediaPipe, Hugging Face (LLaMA 2)
+- **AI/ML**: Ultralytics YOLOv11, Hugging Face (LLaMA 2)
 - **Inference**: CUDA-accelerated 4-bit Quantized LLaMA (using BitsAndBytes)
 
 ---
