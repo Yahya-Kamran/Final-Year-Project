@@ -19,43 +19,68 @@
 
 ---
 
+## 🧠 Thought Process & Core Logic
+
+The development of Khudsuno followed a rigorous engineering path to solve the "Isolated Word Problem" in sign language translation.
+
+### 1. Model Training & Dataset
+We utilized a custom-curated Pakistani Sign Language (PSL) dataset. The thought process was to use **YOLOv11n** (Nano) for its extreme efficiency on edge devices. By training on specific hand-gestures, we created a model that doesn't just detect objects, but interprets human intent through skeletal landmarks and rigging.
+
+### 2. Multi-Threaded Execution Flow
+To ensure a lag-free user experience, the backend operates on a sophisticated dual-thread architecture:
+
+- **🧵 Thread 1: Real-time Perception (The Eyes)**
+  - Constantly monitors the camera feed using **OpenCV**.
+  - Processes each frame through the YOLOv11 model.
+  - Implements a **temporal buffer**: A gesture must be held for a specific duration to be registered, filtering out accidental movements.
+  - Detects "Sentence Breaks" based on a 5-second inactivity timer.
+
+- **🧵 Thread 2: Natural Language Processing (The Brain)**
+  - Receives the raw "bag of words" from Thread 1 via a thread-safe Queue.
+  - Feeds these words into **Meta LLaMA 2**.
+  - **The Magic**: LLaMA takes raw detections like `[ "hello", "help", "work" ]` and synthesizes them into a natural sentence: *"Hello, I need help with work."*
+  - Sends the refined output back to the frontend via FastAPI.
+
+### 3. Frontend Integration
+The React Native app connects to the FastAPI backend via WebSockets/REST to display both the annotated video stream (showing the skeleton rigging) and the final translated sentences in real-time.
+
+---
+
 ## 🏗️ Architecture
 
 ```mermaid
 graph TD
-    A[Mobile App - React Native] -->|Video Stream/Images| B[FastAPI Backend]
-    B --> C{AI Engine}
-    C -->|Hand Tracking| D[MediaPipe]
-    C -->|Gesture Recognition| E[YOLOv11]
-    C -->|Sentence Construction| F[LLaMA 2]
-    F -->|Translated Text| B
-    B -->|Response| A
+    A[Mobile App - React Native] -->|Video Stream| B[FastAPI Backend]
+    B --> C{Multi-Threaded Engine}
+    C -->|Thread 1: CV| D[YOLOv11 + MediaPipe]
+    D -->|Detected Words Queue| E[Thread 2: NLP]
+    E -->|LLaMA 2 Inference| F[Coherent Sentences]
+    F -->|JSON Response| B
+    B -->|Live Feed + Text| A
 ```
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: React Native, React Navigation, Firebase Auth/Firestore
+- **Frontend**: React Native, React Navigation, Firebase
 - **Backend**: FastAPI, Uvicorn, OpenCV
-- **AI/ML**: Ultralytics YOLOv11, MediaPipe, Hugging Face Transformers (LLaMA 2)
-- **Deployment**: CUDA-accelerated inference for real-time performance
+- **AI/ML**: Ultralytics YOLOv11, MediaPipe, Hugging Face (LLaMA 2)
+- **Inference**: CUDA-accelerated 4-bit Quantized LLaMA (using BitsAndBytes)
 
 ---
 
 ## 📂 Project Structure
 
 ```text
-├── mobile-app/         # React Native Frontend
-├── backend/            # FastAPI Server logic
-│   ├── server.py               # FastAPI Server
-│   ├── psl_training.ipynb      # Main Pakistani Sign Language training logic (Extracted)
-│   ├── yolo_experiments.ipynb  # YOLOv11 testing and inference experiments
-│   ├── data.yaml               # Dataset configuration
-│   └── requirements.txt
-├── models/             # Pre-trained ML weights
-│   └── yolo11n.pt      # Sign Language Detection model
-└── README.md
+├── mobile-app/                 # React Native Frontend
+├── backend/                    # FastAPI Server & ML Logic
+│   ├── server.py               # Production Entry Point (Multi-threaded)
+│   ├── psl_training.ipynb      # Pakistani Sign Language Training Logic
+│   ├── yolo_experiments.ipynb  # Inference & Debugging experiments
+│   ├── data.yaml               # Dataset Configuration
+│   └── requirements.txt        # Backend Dependencies
+└── README.md                   # Project Documentation
 ```
 
 ---
@@ -63,27 +88,20 @@ graph TD
 ## 🚀 Quick Start
 
 ### Backend Setup
-1. Clone the repository.
-2. Install dependencies:
+1. Install dependencies:
    ```bash
    cd backend
    pip install -r requirements.txt
    ```
+2. Configure your local model paths in `server.py`.
 3. Run the server:
    ```bash
    python server.py
    ```
 
 ### Mobile Setup
-1. Navigate to the mobile directory:
-   ```bash
-   cd mobile-app
-   npm install
-   ```
-2. Start the application:
-   ```bash
-   npx react-native run-android # or run-ios
-   ```
+1. Install dependencies: `npm install` inside `mobile-app`.
+2. Run the app: `npx react-native run-android`.
 
 ---
 
